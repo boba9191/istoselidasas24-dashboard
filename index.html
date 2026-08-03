@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Route Ops — istoselidasas24 Außendienst</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Ccircle cx=%2732%27 cy=%2732%27 r=%2727%27 fill=%27none%27 stroke=%27%235cb247%27 stroke-width=%275%27/%3E%3Ccircle cx=%2732%27 cy=%2732%27 r=%2716.5%27 fill=%27%23e07d2a%27/%3E%3Ctext x=%2732%27 y=%2739%27 text-anchor=%27middle%27 font-family=%27sans-serif%27 font-size=%2716%27 font-weight=%27800%27 fill=%27white%27%3E24%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<style>
+  :root{
+    --bg:#f7f7f5;
+    --panel:#ffffff;
+    --ink:#17140f;
+    --ink-2:#5f5b53;
+    --ink-3:#9a958b;
+    --line:#eceae4;
+    --line-2:#e2ded6;
+    --accent:#d97757;
+    --accent-ink:#ffffff;
+    --accent-soft:#fbeee8;
+    /* Status */
+    --s-neu:#98a2b3;
+    --s-email:#3b82f6;
+    --s-besucht:#f59e0b;
+    --s-interessiert:#22a565;
+    --s-kunde:#d97757;
+    --s-absage:#e0604a;
+    --shadow-sm:0 1px 2px rgba(20,18,14,.05);
+    --shadow:0 6px 24px rgba(20,18,14,.09);
+    --shadow-lg:0 16px 50px rgba(20,18,14,.16);
+    --r:12px;
+    --sidebar:392px;
+    --topbar:60px;
+    --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);
+    font-size:14.5px;line-height:1.5;-webkit-font-smoothing:antialiased;overflow:hidden;
+  }
+  button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit}
+  input{font-family:inherit}
+  ::selection{background:var(--accent-soft)}
+  .num{font-variant-numeric:tabular-nums}
+
+  /* ---------------- Login ---------------- */
+  #login{
+    position:fixed;inset:0;z-index:1000;background:var(--bg);
+    display:flex;align-items:center;justify-content:center;padding:24px;
+  }
+  #login .card{
+    width:min(400px,100%);background:var(--panel);border:1px solid var(--line);
+    border-radius:18px;box-shadow:var(--shadow);padding:40px 36px;text-align:center;
+  }
+  #login .mark{font-weight:800;letter-spacing:.14em;font-size:13px;color:var(--accent);text-transform:uppercase}
+  #login h1{font-size:24px;margin:14px 0 4px;letter-spacing:-.02em}
+  #login p{color:var(--ink-2);margin:0 0 26px;font-size:13.5px}
+  #login input{
+    width:100%;padding:13px 15px;border:1px solid var(--line-2);border-radius:10px;
+    font-size:15px;text-align:center;letter-spacing:.05em;outline:none;transition:border-color .15s;
+  }
+  #login input:focus{border-color:var(--accent)}
+  #login button{
+    width:100%;margin-top:12px;padding:13px;border-radius:10px;background:var(--ink);color:#fff;
+    font-weight:600;font-size:15px;transition:transform .1s,background .2s;
+  }
+  #login button:hover{background:#000}
+  #login button:active{transform:scale(.985)}
+  #login .hint{margin-top:16px;font-size:12px;color:var(--ink-3)}
+  #login .err{color:var(--s-absage);font-size:12.5px;height:16px;margin-top:10px}
+
+  /* ---------------- Shell ---------------- */
+  #app{display:none;height:100%;flex-direction:column}
+  #app.on{display:flex}
+  .topbar{
+    height:var(--topbar);flex:none;background:var(--panel);border-bottom:1px solid var(--line);
+    display:flex;align-items:center;gap:18px;padding:0 22px;z-index:5;
+  }
+  .brand{display:flex;align-items:baseline;gap:9px;font-weight:800;letter-spacing:-.01em;font-size:16px}
+  .brand small{font-weight:700;font-size:10px;letter-spacing:.18em;color:var(--accent);text-transform:uppercase}
+  .topbar .spacer{flex:1}
+  .topbar .meta{color:var(--ink-2);font-size:13px;display:flex;align-items:center;gap:18px}
+  .topbar .meta b{color:var(--ink);font-weight:600}
+  .chip-rep{display:inline-flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:5px 12px 5px 6px;font-size:13px}
+  .chip-rep .av{width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:700;font-size:12px}
+  .btn-ghost{padding:7px 12px;border-radius:8px;color:var(--ink-2);font-size:13px;font-weight:500;transition:background .15s,color .15s}
+  .btn-ghost:hover{background:var(--bg);color:var(--ink)}
+
+  .main{flex:1;display:flex;min-height:0}
+
+  /* ---------------- Sidebar ---------------- */
+  .sidebar{
+    width:var(--sidebar);flex:none;background:var(--panel);border-right:1px solid var(--line);
+    display:flex;flex-direction:column;min-height:0;
+  }
+  .filters{padding:18px 20px 14px;border-bottom:1px solid var(--line)}
+  .search{position:relative;margin-bottom:14px}
+  .search input{
+    width:100%;padding:11px 14px 11px 38px;border:1px solid var(--line-2);border-radius:10px;
+    font-size:14px;outline:none;background:var(--bg);transition:border-color .15s,background .15s;
+  }
+  .search input:focus{border-color:var(--accent);background:#fff}
+  .search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--ink-3)}
+  .chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px}
+  .chip{
+    padding:6px 12px;border-radius:999px;border:1px solid var(--line-2);background:#fff;
+    font-size:12.5px;font-weight:500;color:var(--ink-2);transition:all .15s;white-space:nowrap;
+  }
+  .chip:hover{border-color:var(--ink-3)}
+  .chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .chip .c{opacity:.55;margin-left:5px;font-variant-numeric:tabular-nums}
+  .toggle-row{display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--ink-2)}
+  .switch{position:relative;width:38px;height:22px;flex:none}
+  .switch input{opacity:0;width:0;height:0;position:absolute}
+  .switch .track{position:absolute;inset:0;background:var(--line-2);border-radius:999px;transition:background .2s}
+  .switch .knob{position:absolute;top:2px;left:2px;width:18px;height:18px;background:#fff;border-radius:50%;box-shadow:var(--shadow-sm);transition:transform .2s}
+  .switch input:checked + .track{background:var(--accent)}
+  .switch input:checked + .track + .knob{transform:translateX(16px)}
+
+  .list-head{display:flex;align-items:center;justify-content:space-between;padding:12px 20px 6px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+  .list-head button{font-size:11px;letter-spacing:.05em;color:var(--accent);text-transform:none;font-weight:600}
+  .list{flex:1;overflow-y:auto;padding:4px 12px 12px}
+  .list::-webkit-scrollbar{width:9px}.list::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:9px;border:3px solid var(--panel)}
+  .area-label{padding:14px 8px 6px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);font-weight:700;display:flex;align-items:center;gap:8px}
+  .area-label::after{content:"";flex:1;height:1px;background:var(--line)}
+
+  .row{
+    display:flex;align-items:center;gap:11px;padding:11px 10px;border-radius:10px;cursor:pointer;
+    transition:background .12s;position:relative;
+  }
+  .row:hover{background:var(--bg)}
+  .row.active{background:var(--accent-soft)}
+  .row.in-route{background:#fff}
+  .row .pin-dot{width:10px;height:10px;border-radius:50%;flex:none;box-shadow:0 0 0 3px #fff, 0 0 0 4px var(--line)}
+  .row .info{flex:1;min-width:0}
+  .row .name{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .row .sub{font-size:12px;color:var(--ink-3);display:flex;align-items:center;gap:7px;margin-top:1px}
+  .row .sub .ind{color:var(--ink-2)}
+  .row .mail{flex:none;color:var(--ink-3)}
+  .row .mail.has{color:var(--s-interessiert)}
+  .row .add{
+    flex:none;width:28px;height:28px;border-radius:8px;border:1px solid var(--line-2);
+    display:grid;place-items:center;color:var(--ink-2);transition:all .15s;font-size:16px;line-height:1;
+  }
+  .row .add:hover{border-color:var(--accent);color:var(--accent)}
+  .row.in-route .add{background:var(--accent);border-color:var(--accent);color:#fff}
+  .row .ord{position:absolute;left:6px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;font-weight:700;display:none;place-items:center}
+  .row.in-route .pin-dot{display:none}
+  .row.in-route .ord{display:grid}
+
+  .pill{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;line-height:1.6}
+  .pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+
+  /* Route bar */
+  .routebar{flex:none;border-top:1px solid var(--line);background:var(--panel);padding:14px 20px}
+  .routebar.empty{opacity:.6}
+  .rb-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .rb-stats{font-size:13px;color:var(--ink-2)}
+  .rb-stats b{color:var(--ink);font-weight:700;font-size:15px}
+  .rb-clear{font-size:12px;color:var(--ink-3)}
+  .rb-clear:hover{color:var(--s-absage)}
+  .rb-actions{display:flex;gap:8px}
+  .btn{padding:10px 14px;border-radius:10px;font-weight:600;font-size:13.5px;display:inline-flex;align-items:center;justify-content:center;gap:7px;transition:transform .1s,background .2s,border-color .2s}
+  .btn:active{transform:scale(.98)}
+  .btn-primary{background:var(--accent);color:#fff;flex:1}
+  .btn-primary:hover{background:#c96846}
+  .btn-primary:disabled{background:var(--line-2);color:var(--ink-3);cursor:not-allowed}
+  .btn-line{background:#fff;border:1px solid var(--line-2);color:var(--ink)}
+  .btn-line:hover{border-color:var(--ink-3)}
+
+  /* ---------------- Map ---------------- */
+  .mapwrap{flex:1;position:relative;min-width:0}
+  #map{position:absolute;inset:0;background:var(--bg)}
+  .leaflet-container{font-family:var(--font)}
+  .leaflet-control-attribution{font-size:10px;opacity:.6}
+  /* Pins */
+  .pin{width:16px;height:16px;border-radius:50%;border:2.5px solid #fff;box-shadow:0 2px 6px rgba(20,18,14,.28);background:var(--s-neu);transition:transform .15s}
+  .pin:hover{transform:scale(1.25)}
+  .pin.route{width:26px;height:26px;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:13px;font-weight:700;border-width:3px}
+  .pin.active{box-shadow:0 0 0 6px rgba(217,119,87,.22),0 2px 6px rgba(20,18,14,.28)}
+  .pulse{animation:pulse 1.8s ease-out infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(217,119,87,.4)}70%{box-shadow:0 0 0 14px rgba(217,119,87,0)}100%{box-shadow:0 0 0 0 rgba(217,119,87,0)}}
+  /* Route line draw animation */
+  .leaflet-overlay-pane path.route-line{stroke-dasharray:var(--len);stroke-dashoffset:var(--len);animation:draw 1.1s cubic-bezier(.6,.05,.25,1) forwards}
+  @keyframes draw{to{stroke-dashoffset:0}}
+  /* Cluster */
+  .cl{background:#fff;border:1px solid var(--line-2);box-shadow:0 3px 10px rgba(20,18,14,.14);border-radius:50%;display:grid;place-items:center;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;transition:border-color .15s,transform .15s}
+  .cl:hover{border-color:var(--accent);transform:scale(1.06)}
+  .marker-cluster,.marker-cluster div{background:transparent!important;border:0!important}
+
+  .map-legend{
+    position:absolute;left:14px;bottom:14px;z-index:500;background:rgba(255,255,255,.94);
+    backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);
+    padding:11px 14px;display:flex;flex-direction:column;gap:6px;font-size:12px;
+  }
+  .map-legend .lg{display:flex;align-items:center;gap:8px;color:var(--ink-2)}
+  .map-legend .d{width:9px;height:9px;border-radius:50%}
+  .map-fab{position:absolute;right:14px;top:14px;z-index:500;display:flex;flex-direction:column;gap:8px}
+  .map-fab button{background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow-sm);padding:9px 13px;font-size:13px;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:8px;transition:border-color .15s}
+  .map-fab button:hover{border-color:var(--accent)}
+  .map-fab .accent{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+  /* ---------------- Detail panel ---------------- */
+  .detail{
+    position:absolute;top:0;right:0;bottom:0;width:360px;max-width:88vw;z-index:600;
+    background:var(--panel);border-left:1px solid var(--line);box-shadow:var(--shadow-lg);
+    transform:translateX(102%);transition:transform .38s cubic-bezier(.6,.05,.25,1);
+    display:flex;flex-direction:column;
+  }
+  .detail.on{transform:none}
+  .d-head{padding:20px 22px 16px;border-bottom:1px solid var(--line);position:relative}
+  .d-close{position:absolute;right:14px;top:14px;width:30px;height:30px;border-radius:8px;color:var(--ink-3);font-size:18px;display:grid;place-items:center}
+  .d-close:hover{background:var(--bg);color:var(--ink)}
+  .d-head .ind{font-size:12px;color:var(--accent);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+  .d-head h2{font-size:21px;margin:6px 0 3px;letter-spacing:-.01em;padding-right:30px}
+  .d-head .addr{color:var(--ink-2);font-size:13px}
+  .d-head .rate{margin-top:9px;font-size:13px;color:var(--ink-2)}
+  .d-head .rate b{color:var(--ink)}
+  .d-body{flex:1;overflow-y:auto;padding:18px 22px 24px}
+  .d-sec{margin-bottom:22px}
+  .d-sec > label{display:block;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);font-weight:700;margin-bottom:10px}
+  .steps{display:flex;gap:6px}
+  .step{flex:1;text-align:center;font-size:11px;font-weight:600;padding:7px 2px;border-radius:8px;background:var(--bg);color:var(--ink-3);cursor:pointer;transition:all .15s;border:1px solid transparent}
+  .step:hover{border-color:var(--line-2)}
+  .step.on{color:#fff}
+  .contact a{display:flex;align-items:center;gap:11px;padding:11px 12px;border:1px solid var(--line);border-radius:10px;margin-bottom:8px;color:var(--ink);font-weight:500;font-size:13.5px;transition:border-color .15s}
+  .contact a:hover{border-color:var(--accent)}
+  .contact a.dim{color:var(--ink-3);pointer-events:none}
+  .contact .ic{color:var(--ink-3)}
+  .email-box{border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--bg)}
+  .email-box .st{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:600;margin-bottom:4px}
+  .email-box .desc{font-size:12.5px;color:var(--ink-2);margin-bottom:12px}
+  .email-box .btn{width:100%}
+  textarea{width:100%;border:1px solid var(--line-2);border-radius:10px;padding:11px;font-size:13.5px;font-family:inherit;resize:vertical;min-height:70px;outline:none}
+  textarea:focus{border-color:var(--accent)}
+
+  .toast{
+    position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);z-index:1200;
+    background:var(--ink);color:#fff;padding:11px 18px;border-radius:10px;font-size:13.5px;font-weight:500;
+    box-shadow:var(--shadow-lg);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;display:flex;align-items:center;gap:9px;
+  }
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast .ok{color:#8fe3b0}
+
+  @media(max-width:820px){
+    .sidebar{position:absolute;inset:var(--topbar) 0 0 0;width:100%;z-index:4}
+    .mapwrap{display:none}
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login">
+  <div class="card">
+    <div class="mark" style="display:flex;justify-content:center"><svg viewBox="0 0 262 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="istoselidasas24 — Design & Maintenance" style="height:40px;width:auto"><g><circle cx="32" cy="32" r="27" fill="none" stroke="#5cb247" stroke-width="5"/><circle cx="32" cy="32" r="16.5" fill="#e07d2a"/><text x="32" y="38.5" text-anchor="middle" font-family="-apple-system,Segoe UI,Roboto,sans-serif" font-size="16" font-weight="800" fill="#fff">24</text></g><text x="72" y="31" font-family="-apple-system,Segoe UI,Roboto,sans-serif" font-size="23" font-weight="800" letter-spacing="-.01em" fill="#17140f">istoselidasas<tspan fill="#e07d2a">24</tspan></text><text x="73" y="48" font-family="-apple-system,Segoe UI,Roboto,sans-serif" font-size="8.5" letter-spacing="3.2" font-weight="700" fill="#17140f" opacity=".55">DESIGN &amp; MAINTENANCE</text></svg></div>
+    <h1>Route Ops</h1>
+    <p>Melde dich mit deinem Rep-Zugang an.</p>
+    <input id="email" type="email" placeholder="E-Mail" autocomplete="username" style="margin-bottom:8px">
+    <input id="pw" type="password" placeholder="Passwort" autocomplete="current-password">
+    <div class="err" id="loginErr"></div>
+    <button id="loginBtn">Anmelden</button>
+    <button id="signupBtn" class="btn-ghost" style="margin-top:6px;width:100%">Neuen Zugang anlegen</button>
+    <div class="hint" id="loginHint"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="brand">istoselidasas24 <small>Route Ops</small></div>
+    <div class="spacer"></div>
+    <div class="meta">
+      <span id="todayDate"></span>
+      <span class="chip-rep"><span class="av">Γ</span> <b>Giannis</b> · Außendienst</span>
+      <button class="btn-ghost" id="btnAdd">+ Betrieb</button>
+      <button class="btn-ghost" id="logout">Abmelden</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="filters">
+        <div class="search">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <input id="search" placeholder="Betrieb oder Ortschaft suchen…">
+        </div>
+        <div class="chips" id="indChips"></div>
+        <div class="toggle-row">
+          <span>Nur Betriebe mit E-Mail</span>
+          <label class="switch"><input type="checkbox" id="emailOnly"><span class="track"></span><span class="knob"></span></label>
+        </div>
+        <div class="toggle-row" id="queueRow" style="display:none">
+          <span>⏳ Nur Freigabe-Queue</span>
+          <label class="switch"><input type="checkbox" id="queueOnly"><span class="track"></span><span class="knob"></span></label>
+        </div>
+      </div>
+
+      <div class="list-head">
+        <span id="listCount">0 Betriebe</span>
+        <button id="suggestBtn">✦ Heute-Vorschlag</button>
+      </div>
+      <div class="list" id="list"></div>
+
+      <div class="routebar empty" id="routebar">
+        <div class="rb-top">
+          <div class="rb-stats"><b id="rbCount">0</b> Stopps · <span id="rbDist">0,0 km</span></div>
+          <button class="rb-clear" id="rbClear">Leeren</button>
+        </div>
+        <div class="rb-actions">
+          <button class="btn btn-line" id="rbOptimize" title="Reihenfolge optimieren">↧ Optimieren</button>
+          <button class="btn btn-primary" id="rbStart" disabled>Route starten →</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAP -->
+    <div class="mapwrap">
+      <div id="map"></div>
+      <div class="map-fab">
+        <button id="fabFit" class="accent">◎ Alles zeigen</button>
+      </div>
+      <div class="map-legend" id="legend"></div>
+
+      <!-- DETAIL -->
+      <div class="detail" id="detail">
+        <div class="d-head">
+          <button class="d-close" id="dClose">×</button>
+          <div class="ind" id="dInd"></div>
+          <h2 id="dName"></h2>
+          <div class="addr" id="dAddr"></div>
+          <div class="rate" id="dRate"></div>
+        </div>
+        <div class="d-body">
+          <div class="d-sec">
+            <label>Status</label>
+            <div class="steps" id="dSteps"></div>
+          </div>
+          <div class="d-sec">
+            <label>Website / Seite</label>
+            <div id="dPage"></div>
+          </div>
+          <div class="d-sec">
+            <label>Vorab-Kontakt (Website + Angebot)</label>
+            <div class="email-box">
+              <div class="st" id="dEmailSt"></div>
+              <div class="desc" id="dEmailDesc"></div>
+              <button class="btn btn-primary" id="dEmailBtn"></button>
+            </div>
+          </div>
+          <div class="d-sec">
+            <label>Kontakt</label>
+            <div class="contact" id="dContact"></div>
+          </div>
+          <div class="d-sec">
+            <label>Angebot</label>
+            <div class="toggle-row"><span>Erste Monatsrate −50% (Rabatt)</span><label class="switch"><input type="checkbox" id="dDiscount"><span class="track"></span><span class="knob"></span></label></div>
+          </div>
+          <div class="d-sec">
+            <label>Notizen</label>
+            <textarea id="dNotes" placeholder="Notiz vom Besuch…"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STUFE 3: Betrieb + Seite erstellen -->
+<style>
+  #createModal{position:fixed;inset:0;z-index:2000;display:none;align-items:flex-start;justify-content:center;background:rgba(20,16,10,.45);overflow:auto;padding:24px}
+  #createModal.on{display:flex}
+  #createModal .cm-card{background:#fff;max-width:560px;width:100%;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.28);margin:12px 0}
+  #createModal .cm-head{padding:16px 22px;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between}
+  #createModal .cm-head h3{margin:0;font-size:18px}
+  #createModal .cm-x{border:0;background:none;font-size:24px;cursor:pointer;color:#999;line-height:1}
+  #createModal .cm-body{padding:16px 22px;max-height:68vh;overflow:auto}
+  #createModal .cm-sec{margin-bottom:16px}
+  #createModal .cm-sec>label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#8a8272;font-weight:700;margin-bottom:8px}
+  #createModal input,#createModal textarea{width:100%;padding:9px 11px;border:1px solid #ddd;border-radius:9px;font:inherit;margin-bottom:8px;box-sizing:border-box}
+  #createModal textarea{min-height:56px;resize:vertical}
+  #createModal .cm-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  #createModal .fetchers{display:flex;flex-wrap:wrap;gap:6px}
+  #createModal .fetch-chip{font-size:12px;padding:5px 10px;border-radius:20px;border:1px solid #e2ddd2;color:#aaa}
+  #createModal .fetch-chip.on{background:#eef7ea;border-color:#5cb247;color:#2f7d1f}
+  #createModal .cm-hint{font-size:12px;color:#8a8272;margin:2px 0 0}
+  #createModal .cm-foot{padding:14px 22px;border-top:1px solid #eee;display:flex;gap:10px;justify-content:flex-end}
+</style>
+<div id="createModal">
+  <div class="cm-card">
+    <div class="cm-head"><h3 id="cmTitle">Betrieb + Seite erstellen</h3><button class="cm-x" id="cmX">×</button></div>
+    <div class="cm-body">
+      <div class="cm-sec">
+        <label>Betrieb</label>
+        <input id="cmName" placeholder="Name des Betriebs *">
+        <div class="cm-grid"><input id="cmCat" placeholder="Kategorie (z. B. Barber)"><input id="cmArea" placeholder="Ortschaft"></div>
+        <div class="cm-grid"><input id="cmPhone" placeholder="Telefon"><input id="cmEmail" placeholder="E-Mail"></div>
+        <div class="cm-grid"><input id="cmInsta" placeholder="Instagram"><input id="cmWeb" placeholder="Website (falls vorhanden)"></div>
+        <div class="cm-grid"><input id="cmLat" placeholder="Lat (optional)"><input id="cmLng" placeholder="Lng (optional)"></div>
+      </div>
+      <div class="cm-sec">
+        <label>Datenquellen (modular)</label>
+        <div class="fetchers" id="cmFetchers"></div>
+        <div class="cm-hint">Aktive Quellen fließen ins Seiten-Inhalts-Objekt. Rezensionen / Website / Instagram sind andockbar.</div>
+      </div>
+      <div class="cm-sec">
+        <label>Inhalt (manuell — ergänzt/überschreibt)</label>
+        <input id="cmTagline" placeholder="Tagline / Slogan">
+        <textarea id="cmServices" placeholder="Leistungen — eine pro Zeile"></textarea>
+        <textarea id="cmAbout" placeholder="Über uns (kurz)"></textarea>
+        <textarea id="cmHours" placeholder="Öffnungszeiten"></textarea>
+      </div>
+      <div class="cm-sec">
+        <label>Foto (optional — Bucket „shop-photos")</label>
+        <input id="cmPhoto" type="file" accept="image/*">
+        <div class="cm-hint">Echtes Shop-Foto = stärkster Qualitäts-Hebel.</div>
+      </div>
+    </div>
+    <div class="cm-foot">
+      <button class="btn-ghost" id="cmCancel">Abbrechen</button>
+      <button class="btn btn-primary" id="cmSubmit">Betrieb + Seite erstellen</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config/pricing.js"></script>
+<script>
+/* =====================================================================
+   DATEN — realistische Thessaloniki-Beispiele.
+   Struktur = fertig für echte Apify-Google-Maps-Daten (einfach ersetzen).
+   ===================================================================== */
+/* ==== SUPABASE-ANBINDUNG (Stufe 2) ==== */
+const SB_URL = "https://raevfaiftzfbandloryt.supabase.co";
+const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJhZXZmYWlmdHpmYmFuZGxvcnl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU1MDI2MTksImV4cCI6MjEwMTA3ODYxOX0.Hysds0-KcaFauQrLzoKO0vV5JbF-Eqq8ombN6QEWHCk";
+const sb = window.supabase.createClient(SB_URL, SB_KEY);
+const SITE_BASE = (window.PRICING && window.PRICING.siteBase) || "https://greeklocalbusiness.vercel.app"; // Live-Basis-URL — spaeter: https://istoselidasas24.gr
+let me = null; // eingeloggter Rep {id,name,city,role}
+// Status: DB-Enum (9) <-> Dashboard-UI (5+Absage)
+const DB2UI = {neu:'neu', seite_erstellt:'neu', zur_pruefung:'neu', freigegeben:'neu', email_raus:'email', besucht:'besucht', interessiert:'interessiert', kunde:'kunde', absage:'absage'};
+const UI2DB = {neu:'neu', email:'email_raus', besucht:'besucht', interessiert:'interessiert', kunde:'kunde', absage:'absage'};
+
+/* SEED bleibt als Offline-Fallback im Code, wird aber von der DB überschrieben (siehe load()). */
+const SEED = []; // Leads kommen ausschliesslich aus Supabase (RLS). Inline-Array entfernt (PII/Hosting-Sicherheit).
+
+const STATUS = {
+  neu:         {label:"Neu",           color:"var(--s-neu)"},
+  email:       {label:"E-Mail raus",   color:"var(--s-email)"},
+  besucht:     {label:"Besucht",       color:"var(--s-besucht)"},
+  interessiert:{label:"Interessiert",  color:"var(--s-interessiert)"},
+  kunde:       {label:"Kunde",         color:"var(--s-kunde)"},
+  absage:      {label:"Absage",        color:"var(--s-absage)"}
+};
+const STATUS_ORDER = ["neu","email","besucht","interessiert","kunde"];
+
+/* =====================================================================
+   STATE + PERSISTENZ
+   ===================================================================== */
+const LS = "northfade_ops_v1";
+let biz = [];
+let route = [];              // ids in Reihenfolge
+let activeId = null;
+let filter = { ind:"Alle", emailOnly:false, q:"" };
+
+async function load(){
+  const { data, error } = await sb.from('businesses')
+    .select('id,name,category,area,city,phone,email,instagram,rating,reviews,lat,lng,website,slug,status,emailed_at,notes,first_month_discount')
+    .order('reviews', { ascending:false, nullsFirst:false });
+  if(error){ toast("Fehler beim Laden: "+error.message); biz=[]; return; }
+  biz = (data||[])
+    .filter(r => r.lat!=null && r.lng!=null)
+    .map((r,i)=>({
+      id:i+1, uuid:r.id, name:r.name, ind:r.category||'—', area:r.area||r.city||'',
+      lat:r.lat, lng:r.lng, phone:r.phone||'', email:r.email, rating:r.rating, reviews:r.reviews,
+      website:r.website, instagram:r.instagram, slug:r.slug,
+      gmaps:"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(r.name),
+      demo:(r.status && r.status!=='neu' && r.slug) ? (SITE_BASE + '/' + r.slug) : null, pdf:null,
+      status: DB2UI[r.status]||'neu',
+      dbStatus: r.status,
+      pageState: (r.status==='neu' ? 'none' : (['seite_erstellt','zur_pruefung'].includes(r.status) ? 'draft' : 'approved')),
+      firstMonthDiscount: !!r.first_month_discount,
+      notes: r.notes||"",
+      emailedAt: r.emailed_at ? new Date(r.emailed_at).getTime() : null
+    }));
+  // nur lokale UI-Präferenzen (Route/Filter) aus localStorage
+  const saved = JSON.parse(localStorage.getItem(LS) || "{}");
+  route = (saved.route||[]).filter(id=>biz.some(b=>b.id===id));
+  filter = saved.filter || filter;
+}
+function save(){ // nur lokale UI-Präferenzen
+  localStorage.setItem(LS, JSON.stringify({ route, filter }));
+}
+async function updateBiz(b, patch){
+  const { error } = await sb.from('businesses').update(patch).eq('id', b.uuid);
+  if(error) toast("Speichern fehlgeschlagen: "+error.message);
+}
+
+/* =====================================================================
+   HELPERS
+   ===================================================================== */
+const $ = s => document.querySelector(s);
+const byId = id => biz.find(b=>b.id===id);
+function haversine(a,b){
+  const R=6371,dLat=(b.lat-a.lat)*Math.PI/180,dLng=(b.lng-a.lng)*Math.PI/180;
+  const s=Math.sin(dLat/2)**2+Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLng/2)**2;
+  return 2*R*Math.asin(Math.sqrt(s));
+}
+function routeDist(){ let d=0; for(let i=1;i<route.length;i++) d+=haversine(byId(route[i-1]),byId(route[i])); return d; }
+function daysAgo(ts){ return ts==null?null:Math.floor((Date.now()-ts)/864e5); }
+function toast(msg, ok){ const t=$("#toast"); t.innerHTML=(ok?'<span class="ok">✓</span>':'')+msg; t.classList.add("on"); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove("on"),2600); }
+
+function visible(){
+  return biz.filter(b=>{
+    if(filter.ind!=="Alle" && b.ind!==filter.ind) return false;
+    if(filter.emailOnly && !b.email) return false;
+    if(filter.queueOnly && b.pageState!=='draft') return false;
+    if(filter.q){ const q=filter.q.toLowerCase(); if(!(b.name.toLowerCase().includes(q)||b.area.toLowerCase().includes(q))) return false; }
+    return true;
+  });
+}
+
+/* =====================================================================
+   MAP
+   ===================================================================== */
+let map, clusterGroup=null, routeGroup=null, routeLayer=null;
+function makeCluster(c){
+  const n=c.getChildCount(); const s = n<10?34:n<40?40:n<120?48:56;
+  return L.divIcon({html:`<div class="cl" style="width:${s}px;height:${s}px;font-size:${n<100?13:12}px">${n}</div>`,className:"",iconSize:[s,s]});
+}
+function initMap(){
+  map = L.map("map",{zoomControl:true, attributionControl:true}).setView([40.625,22.955],12);
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",{
+    attribution:'© OpenStreetMap · © CARTO', subdomains:"abcd", maxZoom:20
+  }).addTo(map);
+  clusterGroup = L.markerClusterGroup({iconCreateFunction:makeCluster, showCoverageOnHover:false, maxClusterRadius:50, spiderfyOnMaxZoom:true, chunkedLoading:true});
+  map.addLayer(clusterGroup);
+  routeGroup = L.layerGroup().addTo(map);
+  renderMarkers();
+}
+function renderMarkers(){
+  if(!clusterGroup) return;
+  clusterGroup.clearLayers(); routeGroup.clearLayers();
+  const inRoute = new Set(route);
+  const bulk=[];
+  visible().forEach(b=>{
+    if(inRoute.has(b.id)){
+      const idx=route.indexOf(b.id);
+      const m=L.marker([b.lat,b.lng],{zIndexOffset:1000,icon:L.divIcon({html:`<div class="pin route ${activeId===b.id?'active':''}">${idx+1}</div>`,className:"",iconSize:[26,26],iconAnchor:[13,13]})});
+      m.on("click",()=>openDetail(b.id)); routeGroup.addLayer(m);
+    } else {
+      const cls=`pin ${activeId===b.id?'active pulse':''}`;
+      const m=L.marker([b.lat,b.lng],{icon:L.divIcon({html:`<div class="${cls}" style="background:${STATUS[b.status].color}"></div>`,className:"",iconSize:[16,16],iconAnchor:[8,8]})});
+      m.on("click",()=>openDetail(b.id)); bulk.push(m);
+    }
+  });
+  clusterGroup.addLayers(bulk);
+  renderRouteLine();
+}
+function renderRouteLine(){
+  if(routeLayer){ map.removeLayer(routeLayer); routeLayer=null; }
+  if(route.length<2) return;
+  const pts = route.map(id=>[byId(id).lat, byId(id).lng]);
+  routeLayer = L.polyline(pts,{color:"#d97757",weight:3.5,opacity:.9,className:"route-line",dashArray:null}).addTo(map);
+  // Draw-Animation vorbereiten
+  const path = routeLayer.getElement && routeLayer.getElement();
+  if(path){ const len=path.getTotalLength(); path.style.setProperty("--len",len); }
+}
+
+/* =====================================================================
+   SIDEBAR: Filter-Chips + Liste
+   ===================================================================== */
+function renderChips(){
+  const inds = ["Alle", ...Array.from(new Set(biz.map(b=>b.ind)))];
+  $("#indChips").innerHTML = inds.map(i=>{
+    const c = i==="Alle"? biz.length : biz.filter(b=>b.ind===i).length;
+    return `<button class="chip ${filter.ind===i?'on':''}" data-ind="${i}">${i}<span class="c">${c}</span></button>`;
+  }).join("");
+}
+function renderList(){
+  const items = visible();
+  $("#listCount").textContent = items.length + (items.length===1?" Betrieb":" Betriebe");
+  // nach Ortschaft gruppieren
+  const groups = {};
+  items.forEach(b=>{ (groups[b.area]=groups[b.area]||[]).push(b); });
+  const areas = Object.keys(groups).sort();
+  $("#list").innerHTML = areas.map(area=>{
+    const rows = groups[area].map(b=>{
+      const inR = route.includes(b.id);
+      const st = STATUS[b.status];
+      return `<div class="row ${activeId===b.id?'active':''} ${inR?'in-route':''}" data-id="${b.id}">
+        <span class="ord"></span>
+        <span class="pin-dot" style="background:${st.color}"></span>
+        <div class="info">
+          <div class="name">${b.name}</div>
+          <div class="sub"><span class="ind">${b.ind}</span> · <span class="pill" style="color:${st.color}">${st.label}</span></div>
+        </div>
+        <span class="mail ${b.email?'has':''}" title="${b.email||'keine E-Mail'}">${b.email?mailIcon():mailOff()}</span>
+        <button class="add" data-add="${b.id}">${inR?'✓':'+'}</button>
+      </div>`;
+    }).join("");
+    return `<div class="area-label">${area} <span style="color:var(--ink-3);font-weight:600">${groups[area].length}</span></div>${rows}`;
+  }).join("") || `<div style="padding:40px 12px;text-align:center;color:var(--ink-3)">Keine Betriebe gefunden.</div>`;
+  // Ordnungszahlen für Route
+  document.querySelectorAll(".row.in-route").forEach(r=>{ r.querySelector(".ord").textContent = route.indexOf(+r.dataset.id)+1; });
+}
+function mailIcon(){return '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>';}
+function mailOff(){return '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" opacity=".5"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 5l18 14"/></svg>';}
+
+function renderLegend(){
+  $("#legend").innerHTML = STATUS_ORDER.concat(["absage"]).map(k=>
+    `<div class="lg"><span class="d" style="background:${STATUS[k].color}"></span>${STATUS[k].label}</div>`).join("");
+}
+
+/* =====================================================================
+   ROUTE
+   ===================================================================== */
+function toggleRoute(id){
+  const i = route.indexOf(id);
+  if(i>=0) route.splice(i,1); else route.push(id);
+  save(); renderAll();
+}
+function renderRoutebar(){
+  const rb = $("#routebar");
+  rb.classList.toggle("empty", route.length===0);
+  $("#rbCount").textContent = route.length;
+  $("#rbDist").textContent = routeDist().toFixed(1).replace(".",",")+" km";
+  $("#rbStart").disabled = route.length===0;
+}
+function optimizeRoute(){
+  if(route.length<3){ toast("Mindestens 3 Stopps zum Optimieren"); return; }
+  const pts = route.map(byId);
+  const start = pts[0]; const rest = pts.slice(1); const ordered=[start];
+  let cur=start;
+  while(rest.length){
+    let bi=0,bd=Infinity;
+    rest.forEach((p,i)=>{const d=haversine(cur,p);if(d<bd){bd=d;bi=i;}});
+    cur=rest.splice(bi,1)[0]; ordered.push(cur);
+  }
+  route = ordered.map(p=>p.id); save(); renderAll();
+  toast("Route optimiert · "+routeDist().toFixed(1).replace(".",",")+" km", true);
+}
+function startRoute(){
+  if(!route.length) return;
+  const pts = route.map(byId);
+  const dest = pts[pts.length-1];
+  const wp = pts.slice(0,-1).map(p=>`${p.lat},${p.lng}`).join("|");
+  let url = `https://www.google.com/maps/dir/?api=1&travelmode=walking&destination=${dest.lat},${dest.lng}`;
+  if(wp) url += `&waypoints=${encodeURIComponent(wp)}`;
+  window.open(url,"_blank");
+}
+function suggestToday(){
+  // Betriebe deren Vorab-Mail 1–3 Tage her ist & noch nicht besucht → clustern nach Nähe
+  const ready = biz.filter(b=>{ const d=daysAgo(b.emailedAt); return b.status==="email" && d!=null && d>=1 && d<=3; });
+  if(!ready.length){ toast("Keine vorgewärmten Betriebe für heute — erst Vorab-Mails senden."); return; }
+  // Nearest-neighbor ab dem nördlichsten
+  ready.sort((a,b)=>b.lat-a.lat);
+  const ordered=[ready[0]]; const rest=ready.slice(1); let cur=ready[0];
+  while(rest.length){ let bi=0,bd=Infinity; rest.forEach((p,i)=>{const d=haversine(cur,p);if(d<bd){bd=d;bi=i;}}); cur=rest.splice(bi,1)[0]; ordered.push(cur); }
+  route = ordered.map(b=>b.id); save(); renderAll();
+  map.flyToBounds(L.latLngBounds(ordered.map(b=>[b.lat,b.lng])).pad(.25),{duration:.8});
+  toast(ready.length+" vorgewärmte Betriebe als Route geladen", true);
+}
+
+/* =====================================================================
+   DETAIL-PANEL
+   ===================================================================== */
+function openDetail(id){
+  activeId=id; const b=byId(id);
+  $("#dInd").textContent=b.ind+" · "+b.area;
+  $("#dName").textContent=b.name;
+  $("#dAddr").textContent=b.area+", Θεσσαλονίκη";
+  $("#dRate").innerHTML=`★ <b>${b.rating}</b> · ${b.reviews} κριτικές`;
+  // steps
+  $("#dSteps").innerHTML = STATUS_ORDER.map(k=>
+    `<div class="step ${b.status===k?'on':''}" data-st="${k}" style="${b.status===k?`background:${STATUS[k].color}`:''}">${STATUS[k].label}</div>`).join("")
+    + `<div class="step ${b.status==='absage'?'on':''}" data-st="absage" style="${b.status==='absage'?`background:${STATUS.absage.color}`:''}">Absage</div>`;
+  // seite / website + QA-Freigabe
+  const pageBadge = b.pageState==='draft'    ? `<span class="pill" style="color:var(--s-neu)">⏳ Zur Prüfung</span>`
+                  : b.pageState==='approved' ? `<span class="pill" style="color:var(--s-kunde)">✓ Freigegeben</span>` : '';
+  const approveBtn = (b.pageState==='draft' && me && me.role==='admin')
+                  ? `<button class="btn btn-primary" id="dApproveBtn">✓ Freigeben</button>` : '';
+  const _hasPage = (b.pageState==='draft' || b.pageState==='approved');
+  const _publicLink = (b.pageState==='approved' && b.demo)
+      ? `<a href="${b.demo}" target="_blank">🔗 Seite ansehen (live)</a> &nbsp;·&nbsp; ` : '';
+  $("#dPage").innerHTML = (_hasPage
+      ? `${_publicLink}<button class="btn btn-line" id="dPageBtn">Seite aktualisieren</button>`
+      : `<button class="btn btn-primary" id="dPageBtn">🌐 Seite erstellen</button>`)
+      + ((pageBadge||approveBtn) ? `<div style="margin-top:8px;display:flex;align-items:center;gap:8px">${pageBadge}${approveBtn}</div>` : '')
+      + (b.pageState==='draft' ? `<div style="margin-top:6px;font-size:12px;color:#8a8272">Öffentlich sichtbar erst nach Freigabe.</div>` : '');
+  { const pb=$("#dPageBtn"); if(pb) pb.onclick=()=>openPageModal(b);
+    const ab=$("#dApproveBtn"); if(ab) ab.onclick=()=>approvePage(b); }
+  // email box
+  const d=daysAgo(b.emailedAt);
+  const es=$("#dEmailSt"), eb=$("#dEmailBtn");
+  const links = b.demo
+    ? `<div style="margin-top:8px;display:flex;flex-direction:column;gap:4px;font-size:12.5px">
+         <a href="${b.demo}" target="_blank">🔗 Demo-Seite ansehen</a>
+         <a href="${b.pdf}" target="_blank">📄 Angebots-PDF ansehen</a>
+       </div>` : "";
+  if(b.emailedAt==null){
+    es.innerHTML=`<span class="pill" style="color:var(--s-neu)">Noch nicht kontaktiert</span>`;
+    if(b.email && b.demo){
+      $("#dEmailDesc").innerHTML = "Öffnet einen fertigen Gmail-Entwurf (griechisch) mit Demo-Link + Angebots-PDF an <b>"+b.email+"</b> — nur noch auf „Senden“ klicken."+links;
+      eb.textContent="✉ Gmail-Entwurf öffnen"; eb.disabled=false;
+    } else if(b.email){
+      $("#dEmailDesc").innerHTML = "Für diesen Betrieb ist noch keine Demo-Seite erstellt. Setzt nur den Status auf „E-Mail raus“.";
+      eb.textContent="Status setzen (Demo fehlt)"; eb.disabled=false;
+    } else {
+      $("#dEmailDesc").textContent = "Keine E-Mail-Adresse hinterlegt.";
+      eb.textContent="Keine E-Mail vorhanden"; eb.disabled=true;
+    }
+    eb.style.display="";
+  } else {
+    const overdue = d>3;
+    es.innerHTML=`<span class="pill" style="color:${overdue?'var(--s-absage)':'var(--s-email)'}">✓ Vorab-Mail vor ${d===0?'heute':d+' Tag'+(d>1?'en':'')} raus</span>`;
+    $("#dEmailDesc").innerHTML = (overdue? "Schon länger her — evtl. erneut nachfassen." : 'Bereit für den Besuch: „Habt ihr euch die Seite angeschaut?“')+links;
+    eb.textContent = b.demo? "✉ Gmail erneut öffnen" : "Erneut senden"; eb.disabled=false; eb.style.display="";
+  }
+  // QA-Gate: Mailversand erst nach Freigabe (Seite existiert, aber noch nicht freigegeben)
+  if(b.demo && b.pageState!=='approved' && b.emailedAt==null){
+    $("#dEmailDesc").innerHTML = "🔒 Seite ist erstellt, aber noch <b>nicht freigegeben</b>. Der Mailversand ist erst nach der Admin-Freigabe (QA-Gate) möglich.";
+    eb.textContent="🔒 Warte auf Freigabe"; eb.disabled=true; eb.style.display="";
+  }
+  // contact
+  $("#dContact").innerHTML =
+    `<a href="tel:${b.phone.replace(/\s/g,'')}"><span class="ic">📞</span> ${b.phone}</a>`+
+    (b.email? `<a href="mailto:${b.email}"><span class="ic">✉</span> ${b.email}</a>` : `<a class="dim"><span class="ic">✉</span> keine E-Mail</a>`)+
+    `<a href="https://www.google.com/maps/search/?api=1&query=${b.lat},${b.lng}" target="_blank"><span class="ic">📍</span> In Google Maps öffnen</a>`;
+  $("#dNotes").value=b.notes||"";
+  { const dd=$("#dDiscount"); if(dd){ dd.checked=!!b.firstMonthDiscount; dd.onchange=e=>{ b.firstMonthDiscount=e.target.checked; updateBiz(b,{first_month_discount:e.target.checked}); }; } }
+  $("#detail").classList.add("on");
+  map.flyTo([b.lat,b.lng], Math.max(map.getZoom(),15), {duration:.7});
+  renderMarkers(); renderList();
+}
+function closeDetail(){ activeId=null; $("#detail").classList.remove("on"); renderMarkers(); renderList(); }
+function setStatus(k){ const b=byId(activeId); b.status=k; const patch={status:UI2DB[k]||k}; if(k==="email"&&b.emailedAt==null){ b.emailedAt=Date.now(); patch.emailed_at=new Date().toISOString(); } updateBiz(b,patch); openDetail(activeId); renderAll(); }
+/* Griechische E-Mail-Vorlage → Gmail-Compose-Link (öffnet fertig vorausgefüllten Entwurf) */
+function gmailUrl(b){
+  const rating=b.rating||"", reviews=b.reviews||"";
+  // Segment-abhängig: hat schon Website → vergleichs-freudig; sonst → "für dich gebaut"
+  const hasSite = !!b.website;
+  const su = hasSite
+    ? `Μια πιο μοντέρνα εκδοχή για το ${b.name}`
+    : `Φτιάξαμε μια ιστοσελίδα για το ${b.name}`;
+  const intro = `Πέσαμε πάνω στο ${b.name} στο Google — ${rating}★ με ${reviews} κριτικές. Πραγματικά ξεχωρίζετε στη ${b.area}.`;
+  const pitch = hasSite
+    ? `Είδαμε ότι έχετε ήδη ιστοσελίδα — γι' αυτό σχεδιάσαμε μια πιο σύγχρονη εκδοχή και σας αφήνουμε να συγκρίνετε μόνοι σας:`
+    : `Σχεδιάσαμε μια νέα, μοντέρνα ιστοσελίδα ειδικά για εσάς — φτιαγμένη για κινητό, με τιμοκατάλογο, χάρτη και ραντεβού με ένα κλικ:`;
+  const feat = `Φτιαγμένη για κινητό, με τιμοκατάλογο, χάρτη και ραντεβού με ένα κλικ — έτοιμη να μπει live.`;
+  const body=
+`Γεια σας,
+
+${intro}
+
+${pitch}
+${b.demo}
+${hasSite ? "\n"+feat+"\n" : ""}
+Δείτε αναλυτικά την προσφορά μας εδώ (PDF):
+${b.pdf}
+
+Θα περάσουμε τις επόμενες ημέρες από το κατάστημά σας. Ρίξτε μια ματιά και πείτε μας τη γνώμη σας — ή απαντήστε απευθείας σε αυτό το email!
+
+Με εκτίμηση,
+istoselidasas24`;
+  return `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(b.email)}&su=${encodeURIComponent(su)}&body=${encodeURIComponent(body)}`;
+}
+function sendEmail(){
+  const b=byId(activeId);
+  if(b.email && b.demo){ window.open(gmailUrl(b), "_blank"); }
+  b.emailedAt=Date.now(); const patch={emailed_at:new Date().toISOString()};
+  if(b.status==="neu"){ b.status="email"; patch.status="email_raus"; }
+  updateBiz(b,patch); openDetail(activeId); renderAll();
+  toast(b.demo ? "Gmail-Entwurf geöffnet für "+b.name : "Status gesetzt — Demo für diesen Betrieb fehlt noch", true);
+}
+
+/* =====================================================================
+   RENDER + EVENTS
+   ===================================================================== */
+function renderAll(){ renderList(); renderMarkers(); renderRoutebar(); }
+
+function wire(){
+  // Login (Supabase Auth)
+  const setErr=m=>{ $("#loginErr").textContent=m||""; };
+  const doLogin=async()=>{
+    setErr(""); const email=$("#email").value.trim(), pw=$("#pw").value;
+    if(!email||!pw){ setErr("E-Mail und Passwort eingeben."); return; }
+    const { error }=await sb.auth.signInWithPassword({ email, password:pw });
+    if(error){ setErr(error.message); return; }
+    boot();
+  };
+  const doSignup=async()=>{
+    setErr(""); const email=$("#email").value.trim(), pw=$("#pw").value;
+    if(!email||pw.length<6){ setErr("E-Mail + Passwort (min. 6 Zeichen)."); return; }
+    const { error }=await sb.auth.signUp({ email, password:pw });
+    if(error){ setErr(error.message); return; }
+    $("#loginHint").innerHTML="Zugang angelegt. Danach muss er einmalig als Rep freigeschaltet werden (SQL). Dann anmelden.";
+  };
+  $("#loginBtn").onclick=doLogin;
+  $("#signupBtn").onclick=doSignup;
+  $("#pw").onkeydown=e=>{ if(e.key==="Enter")doLogin(); };
+  $("#logout").onclick=async()=>{ await sb.auth.signOut(); location.reload(); };
+
+  // Filter
+  $("#indChips").onclick=e=>{ const c=e.target.closest(".chip"); if(!c)return; filter.ind=c.dataset.ind; save(); renderChips(); renderAll(); };
+  $("#emailOnly").onchange=e=>{ filter.emailOnly=e.target.checked; save(); renderAll(); };
+  $("#search").oninput=e=>{ filter.q=e.target.value; renderAll(); };
+
+  // Liste
+  $("#list").onclick=e=>{
+    const add=e.target.closest("[data-add]");
+    if(add){ e.stopPropagation(); toggleRoute(+add.dataset.add); return; }
+    const row=e.target.closest(".row"); if(row) openDetail(+row.dataset.id);
+  };
+
+  // Routebar
+  $("#rbClear").onclick=()=>{ route=[]; save(); renderAll(); };
+  $("#rbOptimize").onclick=optimizeRoute;
+  $("#rbStart").onclick=startRoute;
+  $("#suggestBtn").onclick=suggestToday;
+
+  // Map fab
+  $("#fabFit").onclick=()=>{ const v=visible(); if(v.length) map.flyToBounds(L.latLngBounds(v.map(b=>[b.lat,b.lng])).pad(.15),{duration:.7}); };
+
+  // Detail
+  $("#dClose").onclick=closeDetail;
+  $("#dSteps").onclick=e=>{ const s=e.target.closest(".step"); if(s) setStatus(s.dataset.st); };
+  $("#dEmailBtn").onclick=sendEmail;
+  let _ntmr; $("#dNotes").oninput=e=>{ const b=byId(activeId); b.notes=e.target.value; clearTimeout(_ntmr); _ntmr=setTimeout(()=>updateBiz(b,{notes:b.notes}),700); };
+}
+
+function start(){
+  $("#login").style.display="none";
+  $("#app").classList.add("on");
+  const dt=new Date();
+  $("#todayDate").textContent=dt.toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"long"});
+  $("#emailOnly").checked=filter.emailOnly;
+  renderChips(); renderLegend();
+  if(!map) initMap();
+  renderAll();
+  setTimeout(()=>map.invalidateSize(),80);
+}
+
+/* ===================== STUFE 3 — Betrieb + Seite erstellen (modular, SPEC §6b) ===================== */
+const CITY_CENTER = { lat:40.6403, lng:22.9444 }; // Θεσσαλονίκη
+const GR2LAT = {'α':'a','β':'v','γ':'g','δ':'d','ε':'e','ζ':'z','η':'i','θ':'th','ι':'i','κ':'k','λ':'l','μ':'m','ν':'n','ξ':'x','ο':'o','π':'p','ρ':'r','σ':'s','ς':'s','τ':'t','υ':'y','φ':'f','χ':'ch','ψ':'ps','ω':'o','ά':'a','έ':'e','ή':'i','ί':'i','ό':'o','ύ':'y','ώ':'o','ϊ':'i','ϋ':'y'};
+function slugify(name){
+  const s = [...(name||'').toLowerCase()].map(c=>GR2LAT[c]||c).join('');
+  return (s.replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,48)) || 'shop';
+}
+function catTagline(cat){
+  const m = {
+    'Barber':'Κουρέματα & περιποίηση με στυλ',
+    'Κομμωτήριο':'Κουρέματα & περιποίηση με στυλ',
+    'Νύχια':'Ομορφιά & φροντίδα με λεπτομέρεια',
+    'Αισθητική':'Ομορφιά & φροντίδα με λεπτομέρεια',
+    'Μασάζ':'Χαλάρωση & ευεξία',
+    'Spa':'Χαλάρωση & ευεξία',
+    'Γυμναστήριο':'Προπόνηση για κάθε στόχο',
+    'Τατουάζ':'Μοναδικά σχέδια, επαγγελματική εκτέλεση'
+  };
+  return m[cat] || 'Επαγγελματική εξυπηρέτηση στη Θεσσαλονίκη';
+}
+function deepMerge(t, s){
+  for(const k in s){ const v=s[k];
+    if(v && typeof v==='object' && !Array.isArray(v)){ t[k]=t[k]||{}; deepMerge(t[k], v); }
+    else if(Array.isArray(v)){ if(v.length) t[k]=v; }
+    else if(v!==undefined && v!=='' && v!==null){ t[k]=v; }
+  }
+  return t;
+}
+// Fetcher-Registry: jede Datenquelle = austauschbares Plug-in mit gleichem Interface run(business, manual)
+const Fetchers = [
+  { id:'googlemaps', label:'Google Maps', enabled:true, run(b){ return {
+      hero:{ title:b.name, tagline:catTagline(b.category) },
+      contact:{ phone:b.phone||'', email:b.email||'', maps:'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(b.name) },
+      meta:{ rating:b.rating, reviews:b.reviews, template:'noir' } }; } },
+  { id:'manual', label:'Manuell', enabled:true, run(b,m){ m=m||{}; return {
+      hero:{ tagline:m.tagline||'' },
+      services:(m.services||'').split('\n').map(s=>s.trim()).filter(Boolean),
+      about:m.about||'', hours:m.hours||'' }; } },
+  { id:'reviews',   label:'Rezensionen', enabled:false, run(){ return {}; } },
+  { id:'website',   label:'Website',     enabled:false, run(){ return {}; } },
+  { id:'instagram', label:'Instagram',   enabled:false, run(){ return {}; } },
+];
+function assembleContent(b, manual){
+  const content = { hero:{title:'',tagline:''}, services:[], about:'', hours:'', testimonials:[], contact:{}, meta:{} };
+  for(const f of Fetchers){ if(f.enabled) deepMerge(content, f.run(b, manual)||{}); }
+  return content;
+}
+function renderFetchers(){
+  const el=$("#cmFetchers"); if(!el) return;
+  el.innerHTML = Fetchers.map(f=>`<span class="fetch-chip ${f.enabled?'on':''}">${f.enabled?'✓ ':''}${f.label}${f.enabled?'':' · bald'}</span>`).join("");
+}
+let cmCtx = { mode:'create', biz:null };
+function fillForm(b){
+  const set=(id,v)=>{ if($("#"+id)) $("#"+id).value=(v==null?'':v); };
+  set("cmName", b?b.name:''); set("cmCat", b?b.ind:''); set("cmArea", b?b.area:'');
+  set("cmPhone", b?b.phone:''); set("cmEmail", b?b.email:''); set("cmInsta", b?b.instagram:'');
+  set("cmWeb", b?b.website:''); set("cmLat", b&&b.lat!=null?b.lat:''); set("cmLng", b&&b.lng!=null?b.lng:'');
+  ["cmTagline","cmServices","cmAbout","cmHours"].forEach(id=>set(id,''));
+  if($("#cmPhoto")) $("#cmPhoto").value="";
+}
+function openCreateModal(){ cmCtx={mode:'create',biz:null}; fillForm(null);
+  $("#cmTitle").textContent="Betrieb + Seite erstellen"; $("#cmSubmit").textContent="Betrieb + Seite erstellen";
+  renderFetchers(); $("#createModal").classList.add("on"); setTimeout(()=>$("#cmName").focus(),50); }
+function openPageModal(b){ cmCtx={mode:'page',biz:b}; fillForm(b);
+  $("#cmTitle").textContent="Seite erstellen — "+b.name; $("#cmSubmit").textContent="Seite speichern (zur Prüfung)";
+  renderFetchers(); $("#createModal").classList.add("on"); setTimeout(()=>$("#cmTagline").focus(),50); }
+function closeCreateModal(){ $("#createModal").classList.remove("on"); }
+function readCreateForm(){
+  const g=id=>($("#"+id).value||"").trim();
+  return { name:g("cmName"), category:g("cmCat"), area:g("cmArea"), phone:g("cmPhone"),
+    email:g("cmEmail")||null, instagram:g("cmInsta")||null, website:g("cmWeb")||null,
+    lat:parseFloat(g("cmLat")), lng:parseFloat(g("cmLng")),
+    manual:{ tagline:g("cmTagline"), services:$("#cmServices").value, about:$("#cmAbout").value, hours:$("#cmHours").value } };
+}
+async function uploadPhoto(file, slug){
+  try{
+    const ext=(file.name.split('.').pop()||'jpg').toLowerCase();
+    const path=`${slug}/hero-${Date.now()}.${ext}`;
+    const { error }=await sb.storage.from('shop-photos').upload(path, file, { upsert:true, contentType:file.type });
+    if(error){ toast("Foto übersprungen: "+error.message); return null; }
+    return sb.storage.from('shop-photos').getPublicUrl(path).data.publicUrl;
+  }catch(e){ toast("Foto-Upload fehlgeschlagen"); return null; }
+}
+async function submitCreate(){
+  const f=readCreateForm();
+  if(!f.name){ toast("Name ist Pflicht."); return; }
+  const btn=$("#cmSubmit"); const label=btn.textContent; btn.disabled=true; btn.textContent="Speichere…";
+  const pageMode = (cmCtx.mode==='page' && cmCtx.biz);
+  try{
+    const preview={ name:f.name, category:f.category||null, phone:f.phone||null, email:f.email,
+      rating:(pageMode?cmCtx.biz.rating:null), reviews:(pageMode?cmCtx.biz.reviews:null) };
+    const content=assembleContent(preview, f.manual);
+    const lat=isFinite(f.lat)?f.lat:CITY_CENTER.lat, lng=isFinite(f.lng)?f.lng:CITY_CENTER.lng;
+
+    if(pageMode){
+      // Bestehenden Lead → Seite erstellen/aktualisieren (UPDATE)
+      const patch={ content, status:'zur_pruefung' };
+      const pf=$("#cmPhoto").files[0];
+      if(pf){ const hero=await uploadPhoto(pf, cmCtx.biz.slug||slugify(f.name)); if(hero) patch.hero_photo=hero; }
+      const { error }=await sb.from('businesses').update(patch).eq('id', cmCtx.biz.uuid);
+      if(error){ toast("Speichern fehlgeschlagen: "+error.message); return; }
+      toast("Seite für „"+f.name+"“ erstellt — zur Prüfung.", true);
+    } else {
+      // Neuer Betrieb → INSERT (Slug-Kollisionsschutz)
+      const baseSlug=slugify(f.name);
+      const row={ name:f.name, category:f.category||null, area:f.area||(me&&me.city)||'Θεσσαλονίκη',
+        city:(me&&me.city)||'Θεσσαλονίκη', phone:f.phone||null, phone_href:(f.phone||'').replace(/[^0-9+]/g,'')||null,
+        email:f.email, instagram:f.instagram, website:f.website, lat, lng, template:'noir',
+        content, status:'zur_pruefung', rep_id:(me&&me.id)||null, claimed_at:new Date().toISOString() };
+      let data, error, slug=baseSlug, tries=0;
+      do{
+        ({ data, error } = await sb.from('businesses').insert({ ...row, slug }).select('id,slug').single());
+        if(error && /duplicate|unique/i.test(error.message)){ slug=baseSlug+'-'+Math.random().toString(36).slice(2,6); tries++; }
+        else break;
+      } while(tries<4);
+      if(error){ toast("Anlegen fehlgeschlagen: "+error.message); return; }
+      const pf=$("#cmPhoto").files[0];
+      if(pf){ const hero=await uploadPhoto(pf, data.slug); if(hero) await sb.from('businesses').update({ hero_photo:hero }).eq('id', data.id); }
+      toast("„"+f.name+"“ angelegt — Seite im QA-Gate (zur Prüfung).", true);
+    }
+    closeCreateModal();
+    if(pageMode && typeof closeDetail==='function') closeDetail();
+    await load(); renderAll();
+  }finally{ btn.disabled=false; btn.textContent=label; }
+}
+async function approvePage(b){
+  // Nur Admin (per RLS/Trigger erzwungen); setzt Status 'freigegeben', Trigger stempelt approved_by/at
+  const { error }=await sb.from('businesses').update({ status:'freigegeben' }).eq('id', b.uuid);
+  if(error){ toast("Freigabe fehlgeschlagen: "+error.message); return; }
+  toast("„"+b.name+"“ freigegeben — Mailversand entsperrt.", true);
+  await load(); renderAll();
+  const nb=biz.find(x=>x.uuid===b.uuid); if(nb) openDetail(nb.id); else closeDetail();
+}
+function wireCreate(){
+  const add=$("#btnAdd"); if(add) add.onclick=openCreateModal;
+  if($("#cmX")) $("#cmX").onclick=closeCreateModal;
+  if($("#cmCancel")) $("#cmCancel").onclick=closeCreateModal;
+  if($("#cmSubmit")) $("#cmSubmit").onclick=submitCreate;
+  const m=$("#createModal"); if(m) m.addEventListener("click", e=>{ if(e.target===m) closeCreateModal(); });
+  const q=$("#queueOnly"); if(q) q.onchange=e=>{ filter.queueOnly=e.target.checked; save(); renderAll(); };
+}
+
+async function boot(){
+  const { data:{ session } } = await sb.auth.getSession();
+  if(!session){ $("#login").style.display=""; $("#app").classList.remove("on"); return; }
+  const { data:rep, error } = await sb.from('reps').select('id,name,city,role').eq('id', session.user.id).maybeSingle();
+  if(error){ $("#loginErr").textContent="Profil-Fehler: "+error.message; return; }
+  if(!rep){
+    $("#login").style.display="";
+    $("#loginErr").innerHTML="Eingeloggt, aber noch <b>nicht als Rep freigeschaltet</b>. Freischalt-SQL ausführen (User-ID: <code>"+session.user.id+"</code>), dann neu laden.";
+    return;
+  }
+  me=rep;
+  await load();
+  start();
+  if(rep.role==='admin'){ const qr=$("#queueRow"); if(qr) qr.style.display=""; }
+  const nm=$(".chip-rep b"), av=$(".chip-rep .av");
+  if(nm) nm.textContent=rep.name+(rep.role==='admin'?' · Admin':' · Außendienst');
+  if(av) av.textContent=(rep.name||'?').slice(0,1).toUpperCase();
+}
+wire();
+wireCreate();
+boot();
+</script>
+</body>
+</html>
