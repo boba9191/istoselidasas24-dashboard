@@ -497,6 +497,7 @@ async function load(){
   const saved = JSON.parse(localStorage.getItem(LS) || "{}");
   route = (saved.route||[]).filter(id=>biz.some(b=>b.id===id));
   filter = saved.filter || filter;
+  filter.q = "";  // Suchtext ist fluechtig - nie aus altem Zustand wiederherstellen (sonst unsichtbarer Filter)
 }
 function save(){ // nur lokale UI-Präferenzen
   localStorage.setItem(LS, JSON.stringify({ route, filter }));
@@ -845,6 +846,8 @@ function start(){
   const dt=new Date();
   $("#todayDate").textContent=dt.toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"long"});
   $("#emailOnly").checked=filter.emailOnly;
+  { const _s=$("#search"); if(_s) _s.value=filter.q||""; }
+  { const _q=$("#queueOnly"); if(_q) _q.checked=!!filter.queueOnly; }
   renderChips(); renderLegend();
   if(!map) initMap();
   renderAll();
