@@ -277,7 +277,7 @@
     <div class="meta">
       <span id="todayDate"></span>
       <span class="chip-rep"><span class="av">Γ</span> <b>Giannis</b> · Außendienst</span>
-      <a class="btn-ghost" id="btnRechner" href="rechner/" target="_blank" rel="noopener" style="text-decoration:none">🧮 Preisrechner</a>
+      <button class="btn-ghost" id="btnRechner">🧮 Preisrechner</button>
       <button class="btn-ghost" id="btnAdd">+ Betrieb</button>
       <button class="btn-ghost" id="logout">Abmelden</button>
     </div>
@@ -355,6 +355,10 @@
             </div>
           </div>
           <div class="d-sec">
+            <label>Vor Ort — Zusatzleistungen</label>
+            <button class="btn btn-ghost" id="dRechnerBtn" style="border:1px solid var(--line);width:100%;justify-content:center">🧮 Preisrechner öffnen</button>
+          </div>
+          <div class="d-sec">
             <label>Kontakt</label>
             <div class="contact" id="dContact"></div>
           </div>
@@ -391,6 +395,54 @@
   #createModal .fetch-chip.on{background:#eef7ea;border-color:#5cb247;color:#2f7d1f}
   #createModal .cm-hint{font-size:12px;color:#8a8272;margin:2px 0 0}
   #createModal .cm-foot{padding:14px 22px;border-top:1px solid #eee;display:flex;gap:10px;justify-content:flex-end}
+
+  /* ===== Preisrechner-Modul (SPEC §12: Rechner als Modul in der Rep-App) — namespaced rk- ===== */
+  #rechnerModal{position:fixed;inset:0;z-index:2100;display:none;align-items:flex-start;justify-content:center;background:rgba(20,16,10,.45);overflow:auto;padding:24px}
+  #rechnerModal.on{display:flex}
+  #rechnerModal .rk-card{background:#fff;max-width:640px;width:100%;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.28);margin:12px 0;display:flex;flex-direction:column;max-height:calc(100vh - 48px)}
+  #rechnerModal .rk-head{padding:16px 22px;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between;gap:12px}
+  #rechnerModal .rk-head h3{margin:0;font-size:18px;display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+  #rechnerModal .rk-for{font-size:13px;font-weight:500;color:var(--ink-3)}
+  #rechnerModal .rk-x{border:0;background:none;font-size:24px;cursor:pointer;color:#999;line-height:1}
+  #rechnerModal .rk-reset{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 13px;font-size:12.5px;color:var(--ink-3);font-weight:600;cursor:pointer}
+  #rechnerModal .rk-reset:hover{color:var(--ink);border-color:#dcd7cc}
+  #rechnerModal .rk-body{padding:18px 22px;overflow:auto;flex:1}
+  #rechnerModal .rk-base{background:var(--ink);color:#f4f2ec;border-radius:14px;padding:18px 20px}
+  #rechnerModal .rk-bt{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px}
+  #rechnerModal .rk-badge{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;background:rgba(244,242,236,.16);padding:4px 9px;border-radius:999px}
+  #rechnerModal .rk-bd{color:#c9c3b7;font-size:13px;margin:7px 0 14px;line-height:1.5}
+  #rechnerModal .rk-bp{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+  #rechnerModal .rk-big{font-size:30px;font-weight:800;letter-spacing:-.01em}
+  #rechnerModal .rk-unit{color:#c9c3b7;font-size:14px}
+  #rechnerModal .rk-setup{margin-left:auto;text-align:right;font-size:12.5px;color:#c9c3b7}
+  #rechnerModal .rk-setup b{display:block;color:#f4f2ec;font-size:18px;font-weight:800}
+  #rechnerModal .rk-seclabel{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);font-weight:700;margin:20px 4px 10px;display:flex;align-items:center;gap:10px}
+  #rechnerModal .rk-seclabel::after{content:"";flex:1;height:1px;background:var(--line)}
+  #rechnerModal .rk-row{display:flex;align-items:center;gap:14px;background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:9px;cursor:pointer;transition:border-color .18s,background .18s;user-select:none}
+  #rechnerModal .rk-row:hover{border-color:#dcd7cc}
+  #rechnerModal .rk-row.on{border-color:var(--accent);background:#fbeee8}
+  #rechnerModal .rk-ic{width:42px;height:42px;flex:none;border-radius:11px;background:var(--bg);display:grid;place-items:center;font-size:21px}
+  #rechnerModal .rk-row.on .rk-ic{background:#fff}
+  #rechnerModal .rk-info{flex:1;min-width:0}
+  #rechnerModal .rk-name{font-weight:700;font-size:15.5px}
+  #rechnerModal .rk-desc{color:var(--ink-2);font-size:13px;margin-top:2px;line-height:1.4}
+  #rechnerModal .rk-price{flex:none;text-align:right;font-weight:800;font-size:16px;white-space:nowrap}
+  #rechnerModal .rk-price .rk-u{display:block;font-weight:500;font-size:11.5px;color:var(--ink-3);margin-top:1px}
+  #rechnerModal .rk-sw{flex:none;width:54px;height:31px;border-radius:999px;background:#dcd7cc;position:relative;transition:background .22s}
+  #rechnerModal .rk-row.on .rk-sw{background:var(--accent)}
+  #rechnerModal .rk-sw i{position:absolute;top:3px;left:3px;width:25px;height:25px;border-radius:50%;background:#fff;box-shadow:0 2px 5px rgba(20,18,14,.25);transition:transform .22s cubic-bezier(.4,1.3,.5,1)}
+  #rechnerModal .rk-row.on .rk-sw i{transform:translateX(23px)}
+  #rechnerModal .rk-foot{border-top:1px solid #eee;padding:14px 22px;display:flex;align-items:center;gap:18px;background:#fff}
+  #rechnerModal .rk-block{display:flex;flex-direction:column}
+  #rechnerModal .rk-lbl{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);font-weight:700}
+  #rechnerModal .rk-month{font-size:30px;font-weight:800;letter-spacing:-.01em;line-height:1}
+  #rechnerModal .rk-month .rk-mu{font-size:14px;font-weight:600;color:var(--ink-2)}
+  #rechnerModal .rk-sep{width:1px;align-self:stretch;background:var(--line)}
+  #rechnerModal .rk-setupv{font-size:19px;font-weight:800;line-height:1}
+  #rechnerModal .rk-year{margin-left:auto;text-align:right}
+  #rechnerModal .rk-yv{font-size:17px;font-weight:800;color:var(--accent)}
+  #rechnerModal .rk-terms{padding:10px 22px 16px;font-size:11px;color:var(--ink-3);text-align:center}
+  @media(max-width:560px){ #rechnerModal .rk-year{display:none} #rechnerModal .rk-setup{margin-left:0;text-align:left;margin-top:10px} }
 </style>
 <div id="createModal">
   <div class="cm-card">
@@ -426,6 +478,49 @@
       <button class="btn-ghost" id="cmCancel">Abbrechen</button>
       <button class="btn btn-primary" id="cmSubmit">Betrieb + Seite erstellen</button>
     </div>
+  </div>
+</div>
+
+<!-- SPEC §12: Preisrechner als Modul in der Rep-App (Use-Case 6: Besuch, Zusatzleistungen) -->
+<div id="rechnerModal">
+  <div class="rk-card">
+    <div class="rk-head">
+      <h3>🧮 Preisrechner <span id="rkFor" class="rk-for" style="display:none"></span></h3>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button id="rkReset" class="rk-reset">Zurücksetzen</button>
+        <button id="rkX" class="rk-x" title="Schließen">×</button>
+      </div>
+    </div>
+    <div class="rk-body">
+      <div class="rk-base">
+        <div class="rk-bt">Επαγγελματική ιστοσελίδα <span class="rk-badge">Περιλαμβάνεται</span></div>
+        <div class="rk-bd">Σχεδιασμός &amp; κατασκευή, hosting, domain, χάρτης, τιμοκατάλογος, ενημερώσεις.</div>
+        <div class="rk-bp">
+          <span class="rk-big" id="rkBaseMonth">90€</span><span class="rk-unit">/ μήνα</span>
+          <span class="rk-setup">Setup (εφάπαξ)<b id="rkBaseSetup">390€</b></span>
+        </div>
+      </div>
+      <div class="rk-seclabel">Μηνιαίες υπηρεσίες</div>
+      <div id="rkMonthly"></div>
+      <div class="rk-seclabel">Εφάπαξ (μία φορά)</div>
+      <div id="rkOnetime"></div>
+    </div>
+    <div class="rk-foot">
+      <div class="rk-block">
+        <span class="rk-lbl">Μηνιαία συνδρομή</span>
+        <span class="rk-month"><span id="rkMonth">90</span>€<span class="rk-mu">/μήνα</span></span>
+      </div>
+      <div class="rk-sep"></div>
+      <div class="rk-block">
+        <span class="rk-lbl">Setup</span>
+        <span class="rk-setupv"><span id="rkSetup">390</span>€</span>
+      </div>
+      <div class="rk-block rk-year">
+        <span class="rk-lbl">1ο έτος σύνολο</span>
+        <span class="rk-yv" id="rkYear">1.470€</span>
+      </div>
+    </div>
+    <div class="rk-terms">Οι τιμές δεν περιλαμβάνουν ΦΠΑ 24% · Ελάχιστη διάρκεια 12 μήνες · ανανέωση ανά 6 μήνες</div>
   </div>
 </div>
 
@@ -987,8 +1082,64 @@ async function approvePage(b){
   await load(); renderAll();
   const nb=biz.find(x=>x.uuid===b.uuid); if(nb) openDetail(nb.id); else closeDetail();
 }
+/* ===== Preisrechner-Modul (SPEC §12 · Rechner als Modul in der Rep-App) =====
+   Config-getrieben aus window.PRICING (config/pricing.js = EINZIGE Preis-Quelle). */
+const rkState = {};
+function rkEuro(n){ return n.toLocaleString('el-GR') + '€'; }
+function rkCfg(){ return window.PRICING || {}; }
+function rkAddons(){ const a=rkCfg().addons||{}; return { monthly:a.monthly||[], onetime:a.onetime||[] }; }
+function rkBase(){ const c=rkCfg(); return { monthly:c.monthly||90, setup:c.setup||390 }; }
+function rkAll(){ const a=rkAddons(); return [...a.monthly.map(x=>({...x,type:'m'})), ...a.onetime.map(x=>({...x,type:'s'}))]; }
+function rkRows(list, mountId, unit){
+  const el=$("#"+mountId); if(!el) return;
+  el.innerHTML = list.map(a=>`
+    <div class="rk-row" data-rk="${a.id}">
+      <div class="rk-ic">${a.ic}</div>
+      <div class="rk-info"><div class="rk-name">${a.name}</div><div class="rk-desc">${a.desc}</div></div>
+      <div class="rk-price">+${a.price}€<span class="rk-u">${unit}</span></div>
+      <div class="rk-sw"><i></i></div>
+    </div>`).join('');
+}
+let rkBuilt=false;
+function rkBuild(){
+  if(rkBuilt) return;
+  const a=rkAddons(), B=rkBase();
+  rkRows(a.monthly,'rkMonthly','/ μήνα');
+  rkRows(a.onetime,'rkOnetime','εφάπαξ');
+  if($("#rkBaseMonth")) $("#rkBaseMonth").textContent=B.monthly+'€';
+  if($("#rkBaseSetup")) $("#rkBaseSetup").textContent=B.setup+'€';
+  // Klick auf eine Zeile toggelt (Delegation)
+  ['rkMonthly','rkOnetime'].forEach(mid=>{ const m=$("#"+mid); if(!m) return;
+    m.addEventListener('click', e=>{ const r=e.target.closest('.rk-row'); if(!r) return;
+      const id=r.dataset.rk; rkState[id]=!rkState[id]; r.classList.toggle('on', rkState[id]); rkRecalc(); }); });
+  rkBuilt=true;
+}
+function rkRecalc(){
+  const B=rkBase(); let m=B.monthly, s=B.setup;
+  rkAll().forEach(a=>{ if(rkState[a.id]){ if(a.type==='m') m+=a.price; else s+=a.price; } });
+  if($("#rkMonth")) $("#rkMonth").textContent=m;
+  if($("#rkSetup")) $("#rkSetup").textContent=s;
+  if($("#rkYear"))  $("#rkYear").textContent=rkEuro(s + m*12);
+}
+function openRechner(bizName){
+  rkBuild();
+  const f=$("#rkFor");
+  if(f){ if(bizName){ f.textContent='· '+bizName; f.style.display=''; } else { f.style.display='none'; } }
+  rkRecalc();
+  $("#rechnerModal").classList.add("on");
+}
+function closeRechner(){ $("#rechnerModal").classList.remove("on"); }
+function rkResetAll(){ Object.keys(rkState).forEach(k=>rkState[k]=false);
+  document.querySelectorAll('#rechnerModal .rk-row.on').forEach(r=>r.classList.remove('on')); rkRecalc(); }
+
 function wireCreate(){
   const add=$("#btnAdd"); if(add) add.onclick=openCreateModal;
+  const rc=$("#btnRechner"); if(rc) rc.onclick=()=>openRechner();
+  if($("#rkX")) $("#rkX").onclick=closeRechner;
+  if($("#rkReset")) $("#rkReset").onclick=rkResetAll;
+  { const rm=$("#rechnerModal"); if(rm) rm.addEventListener("click", e=>{ if(e.target===rm) closeRechner(); }); }
+  if($("#dRechnerBtn")) $("#dRechnerBtn").onclick=()=>{ const b=byId(activeId); openRechner(b?b.name:null); };
+  document.addEventListener("keydown", e=>{ if(e.key==="Escape" && $("#rechnerModal").classList.contains("on")) closeRechner(); });
   if($("#cmX")) $("#cmX").onclick=closeCreateModal;
   if($("#cmCancel")) $("#cmCancel").onclick=closeCreateModal;
   if($("#cmSubmit")) $("#cmSubmit").onclick=submitCreate;
