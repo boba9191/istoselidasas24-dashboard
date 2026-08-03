@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>istoselidasas24 — Υπολογιστής τιμής</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Ccircle cx=%2732%27 cy=%2732%27 r=%2727%27 fill=%27none%27 stroke=%27%235cb247%27 stroke-width=%275%27/%3E%3Ccircle cx=%2732%27 cy=%2732%27 r=%2716.5%27 fill=%27%23e07d2a%27/%3E%3Ctext x=%2732%27 y=%2739%27 text-anchor=%27middle%27 font-family=%27sans-serif%27 font-size=%2716%27 font-weight=%27800%27 fill=%27white%27%3E24%3C/text%3E%3C/svg%3E">
+<style>
+  :root{
+    --bg:#f4f2ec; --card:#ffffff; --ink:#17140f; --ink-2:#6b665c; --ink-3:#a39d92;
+    --line:#e7e3da; --line-2:#dcd7cc; --accent:#d97757; --accent-ink:#fff; --accent-soft:#fbeee8;
+    --ok:#1f9d61; --shadow:0 2px 4px rgba(20,18,14,.05); --shadow-lg:0 -10px 40px rgba(20,18,14,.10);
+    --r:16px; --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent }
+  html,body{ height:100% }
+  body{ background:var(--bg); color:var(--ink); font-family:var(--font); -webkit-font-smoothing:antialiased;
+    overscroll-behavior:none; }
+  .num{ font-variant-numeric:tabular-nums }
+
+  .wrap{ max-width:760px; margin:0 auto; padding:0 20px 220px; }
+  header{ padding:30px 0 18px; text-align:center }
+  .brand{ font-weight:800; letter-spacing:.16em; font-size:13px; color:var(--accent); text-transform:uppercase }
+  header h1{ font-size:clamp(26px,5vw,34px); letter-spacing:-.02em; margin:8px 0 4px; font-weight:800 }
+  header p{ color:var(--ink-2); font-size:15px }
+
+  .sec-label{ font-size:12px; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-3);
+    font-weight:700; margin:26px 6px 12px; display:flex; align-items:center; gap:10px }
+  .sec-label::after{ content:""; flex:1; height:1px; background:var(--line) }
+
+  /* Base */
+  .base{ background:var(--ink); color:#f4f2ec; border-radius:var(--r); padding:22px 22px; box-shadow:var(--shadow) }
+  .base .t{ display:flex; align-items:center; gap:10px; font-weight:800; font-size:19px }
+  .base .badge{ font-size:11px; font-weight:700; letter-spacing:.05em; text-transform:uppercase;
+    background:rgba(244,242,236,.16); padding:4px 10px; border-radius:999px }
+  .base .d{ color:#c9c3b7; font-size:14px; margin:8px 0 16px; line-height:1.5 }
+  .base .p{ display:flex; align-items:baseline; gap:8px; flex-wrap:wrap }
+  .base .big{ font-size:34px; font-weight:800; letter-spacing:-.01em }
+  .base .unit{ color:#c9c3b7; font-size:15px }
+  .base .setup{ margin-left:auto; text-align:right; font-size:13px; color:#c9c3b7 }
+  .base .setup b{ display:block; color:#f4f2ec; font-size:20px; font-weight:800 }
+
+  /* Rows */
+  .row{ display:flex; align-items:center; gap:16px; background:var(--card); border:1.5px solid var(--line);
+    border-radius:var(--r); padding:18px 20px; margin-bottom:11px; cursor:pointer; transition:border-color .18s, background .18s, box-shadow .18s; user-select:none }
+  .row:hover{ border-color:var(--line-2) }
+  .row.on{ border-color:var(--accent); background:var(--accent-soft); box-shadow:var(--shadow) }
+  .row .ic{ width:46px; height:46px; flex:none; border-radius:12px; background:var(--bg); display:grid; place-items:center; font-size:23px; transition:background .18s }
+  .row.on .ic{ background:#fff }
+  .row .info{ flex:1; min-width:0 }
+  .row .name{ font-weight:700; font-size:16.5px }
+  .row .desc{ color:var(--ink-2); font-size:13.5px; margin-top:2px; line-height:1.4 }
+  .row .price{ flex:none; text-align:right; font-weight:800; font-size:17px; white-space:nowrap }
+  .row .price .u{ display:block; font-weight:500; font-size:12px; color:var(--ink-3); margin-top:1px }
+  /* Switch */
+  .sw{ flex:none; width:60px; height:34px; border-radius:999px; background:var(--line-2); position:relative; transition:background .22s }
+  .row.on .sw{ background:var(--accent) }
+  .sw i{ position:absolute; top:3px; left:3px; width:28px; height:28px; border-radius:50%; background:#fff;
+    box-shadow:0 2px 5px rgba(20,18,14,.25); transition:transform .22s cubic-bezier(.4,1.3,.5,1) }
+  .row.on .sw i{ transform:translateX(26px) }
+
+  /* Total bar */
+  .total{ position:fixed; left:0; right:0; bottom:0; z-index:20; background:var(--card);
+    border-top:1px solid var(--line); box-shadow:var(--shadow-lg); padding:16px 20px calc(16px + env(safe-area-inset-bottom)); }
+  .total .inner{ max-width:760px; margin:0 auto; display:flex; align-items:center; gap:20px }
+  .total .block{ display:flex; flex-direction:column }
+  .total .lbl{ font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-3); font-weight:700 }
+  .total .month{ font-size:clamp(30px,7vw,42px); font-weight:800; letter-spacing:-.01em; line-height:1 }
+  .total .month .u{ font-size:16px; font-weight:600; color:var(--ink-2) }
+  .total .sep{ width:1px; align-self:stretch; background:var(--line) }
+  .total .setup .v{ font-size:22px; font-weight:800; line-height:1 }
+  .total .year{ margin-left:auto; text-align:right }
+  .total .year .v{ font-size:19px; font-weight:800; color:var(--accent) }
+  .total .terms{ max-width:760px; margin:8px auto 0; font-size:11.5px; color:var(--ink-3); text-align:center }
+  .reset{ position:fixed; top:26px; right:20px; z-index:21; font-size:13px; color:var(--ink-3); font-weight:600;
+    background:var(--card); border:1px solid var(--line); border-radius:999px; padding:8px 14px; cursor:pointer }
+  .reset:hover{ color:var(--ink); border-color:var(--line-2) }
+
+  @media(max-width:520px){
+    .total .year{ display:none }
+    .base .setup{ margin-left:0; text-align:left; margin-top:12px }
+  }
+  @media(min-width:760px){ .row .desc{ font-size:14px } }
+</style>
+</head>
+<body>
+<button class="reset" id="reset">Επαναφορά</button>
+<div class="wrap">
+  <header>
+    <div class="brand" style="display:flex;justify-content:center"><svg viewBox="0 0 262 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="istoselidasas24 — Design & Maintenance" style="height:38px;width:auto"><g><circle cx="32" cy="32" r="27" fill="none" stroke="#5cb247" stroke-width="5"/><circle cx="32" cy="32" r="16.5" fill="#e07d2a"/><text x="32" y="38.5" text-anchor="middle" font-family="-apple-system,Segoe UI,Roboto,sans-serif" font-size="16" font-weight="800" fill="#fff">24</text></g><text x="72" y="31" font-family="-apple-system,Segoe UI,Roboto,sans-serif" font-size="23" font-weight="800" letter-spacing="-.01em" fill="#17140f">istoselidasas<tspan fill="#e07d2a">24</tspan></text><text x="73" y="48" font-family="-apple-system,Segoe UI,Roboto,sans-serif" font-size="8.5" letter-spacing="3.2" font-weight="700" fill="#17140f" opacity=".55">DESIGN &amp; MAINTENANCE</text></svg></div>
+    <h1>Φτιάξε το πακέτο σου</h1>
+    <p>Βασική ιστοσελίδα + ό,τι επιπλέον χρειάζεσαι.</p>
+  </header>
+
+  <!-- Base -->
+  <div class="base">
+    <div class="t">Επαγγελματική ιστοσελίδα <span class="badge">Περιλαμβάνεται</span></div>
+    <div class="d">Σχεδιασμός & κατασκευή, hosting, domain, χάρτης, τιμοκατάλογος, ενημερώσεις.</div>
+    <div class="p">
+      <span class="big num" id="baseMonth">69€</span><span class="unit">/ μήνα</span>
+      <span class="setup">Setup (εφάπαξ)<b class="num" id="baseSetup">390€</b></span>
+    </div>
+  </div>
+
+  <div class="sec-label">Μηνιαίες υπηρεσίες</div>
+  <div id="monthly"></div>
+
+  <div class="sec-label">Εφάπαξ (μία φορά)</div>
+  <div id="onetime"></div>
+</div>
+
+<!-- Total -->
+<div class="total">
+  <div class="inner">
+    <div class="block">
+      <span class="lbl">Μηνιαία συνδρομή</span>
+      <span class="month"><span class="num" id="tMonth">69</span>€<span class="u">/μήνα</span></span>
+    </div>
+    <div class="sep"></div>
+    <div class="block setup">
+      <span class="lbl">Setup</span>
+      <span class="v"><span class="num" id="tSetup">390</span>€</span>
+    </div>
+    <div class="block year">
+      <span class="lbl">1ο έτος σύνολο</span>
+      <span class="v num" id="tYear">1.218€</span>
+    </div>
+  </div>
+  <div class="terms">Οι τιμές δεν περιλαμβάνουν ΦΠΑ 24% · Ελάχιστη διάρκεια 12 μήνες · ανανέωση ανά 6 μήνες</div>
+</div>
+
+<script src="../config/pricing.js"></script>
+<script>
+/* ====== Preise/Add-ons kommen aus ../config/pricing.js (EINZIGE Quelle) ====== */
+const BASE = { monthly: PRICING.monthly, setup: PRICING.setup };
+document.getElementById("baseMonth").textContent = BASE.monthly + "€";
+document.getElementById("baseSetup").textContent = BASE.setup + "€";
+const ADDONS = PRICING.addons;
+
+const state = {};
+function euro(n){ return n.toLocaleString('el-GR') + '€'; }
+
+function renderRows(list, mount){
+  document.getElementById(mount).innerHTML = list.map(a=>`
+    <div class="row" data-id="${a.id}">
+      <div class="ic">${a.ic}</div>
+      <div class="info"><div class="name">${a.name}</div><div class="desc">${a.desc}</div></div>
+      <div class="price">+${a.price}€<span class="u">${mount==='monthly'?'/ μήνα':'εφάπαξ'}</span></div>
+      <div class="sw"><i></i></div>
+    </div>`).join('');
+}
+renderRows(ADDONS.monthly,'monthly');
+renderRows(ADDONS.onetime,'onetime');
+
+const all = [...ADDONS.monthly.map(a=>({...a,type:'m'})), ...ADDONS.onetime.map(a=>({...a,type:'s'}))];
+
+/* Zahl weich animieren */
+function animateNum(el, to, suffix='', money=false){
+  const from = parseFloat((el.dataset.v||'0')); el.dataset.v = to;
+  const t0 = performance.now(), dur = 340;
+  (function tick(t){
+    const p = Math.min((t-t0)/dur,1), e = 1-Math.pow(1-p,3);
+    const v = Math.round(from + (to-from)*e);
+    el.textContent = (money? euro(v) : v.toLocaleString('el-GR')) + suffix;
+    if(p<1) requestAnimationFrame(tick);
+  })(t0);
+}
+
+function recalc(){
+  let m = BASE.monthly, s = BASE.setup;
+  all.forEach(a=>{ if(state[a.id]){ if(a.type==='m') m+=a.price; else s+=a.price; } });
+  animateNum(document.getElementById('tMonth'), m);
+  animateNum(document.getElementById('tSetup'), s);
+  animateNum(document.getElementById('tYear'), s + m*12, '', true);
+}
+
+document.querySelectorAll('.row').forEach(row=>{
+  row.addEventListener('click', ()=>{
+    const id = row.dataset.id;
+    state[id] = !state[id];
+    row.classList.toggle('on', state[id]);
+    recalc();
+  });
+});
+document.getElementById('reset').addEventListener('click', ()=>{
+  Object.keys(state).forEach(k=>state[k]=false);
+  document.querySelectorAll('.row.on').forEach(r=>r.classList.remove('on'));
+  recalc();
+});
+recalc();
+</script>
+</body>
+</html>
