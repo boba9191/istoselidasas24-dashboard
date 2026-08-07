@@ -14,7 +14,7 @@ window.PRICING = {
   "minTermMonths": 12,
   "renewMonths": 6,
   "firstMonthDiscountPct": 50,
-  "siteBase": "https://greeklocalbusiness.vercel.app",
+  "siteBase": "https://istoselidasas24.gr",
   "addons": {
     "monthly": [
       { "id": "wa",   "ic": "💬", "name": "WhatsApp-Ραντεβού",      "desc": "Κουμπί για άμεση κράτηση μέσω WhatsApp",     "price": 11 },

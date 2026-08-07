@@ -352,6 +352,7 @@
               <div class="st" id="dEmailSt"></div>
               <div class="desc" id="dEmailDesc"></div>
               <button class="btn btn-primary" id="dEmailBtn"></button>
+              <button class="btn" id="dOfferBtn" style="width:100%;margin-top:8px;border:1px solid var(--line)">🧾 Angebot-PDF erzeugen</button>
             </div>
           </div>
           <div class="d-sec">
@@ -799,6 +800,7 @@ function openDetail(id){
   // email box
   const d=daysAgo(b.emailedAt);
   const es=$("#dEmailSt"), eb=$("#dEmailBtn");
+  { const ob=$("#dOfferBtn"); if(ob){ const ready=(b.pageState==='approved' && !!b.slug); ob.disabled=!ready; ob.title=ready?'Erzeugt das Angebots-PDF für diesen Betrieb':'Erst nach Freigabe der Seite verfügbar'; } }
   const links = b.demo
     ? `<div style="margin-top:8px;display:flex;flex-direction:column;gap:4px;font-size:12.5px">
          <a href="${b.demo}" target="_blank">🔗 Demo-Seite ansehen</a>
@@ -1132,6 +1134,28 @@ function closeRechner(){ $("#rechnerModal").classList.remove("on"); }
 function rkResetAll(){ Object.keys(rkState).forEach(k=>rkState[k]=false);
   document.querySelectorAll('#rechnerModal .rk-row.on').forEach(r=>r.classList.remove('on')); rkRecalc(); }
 
+/* ===== Aufgabe 4: on-demand Angebot-PDF erzeugen (POST an Vercel /api/angebot/<slug>) ===== */
+async function generateOffer(b){
+  if(!b || !b.slug){ toast('Kein Slug — erst „Seite erstellen"'); return; }
+  if(b.pageState!=='approved'){ toast('Erst nach Freigabe der Seite'); return; }
+  const btn=$("#dOfferBtn"); const label = btn ? btn.textContent : '';
+  if(btn){ btn.disabled=true; btn.textContent='Erzeuge PDF…'; }
+  try{
+    const { data:{ session } } = await sb.auth.getSession();
+    if(!session){ toast('Nicht eingeloggt'); return; }
+    const res = await fetch(`${SITE_BASE}/api/angebot/${encodeURIComponent(b.slug)}`, {
+      method:'POST', headers:{ Authorization:`Bearer ${session.access_token}` }
+    });
+    const data = await res.json().catch(()=>({}));
+    if(!res.ok){ toast('Angebot fehlgeschlagen: '+(data.error||('HTTP '+res.status))); return; }
+    b.pdf = data.url;                        // PDF-Link merken (erscheint bei den Mail-Links)
+    toast('Angebot-PDF erstellt', true);
+    window.open(data.url, '_blank', 'noopener');
+    if(activeId===b.id) openDetail(b.id);    // Detail neu rendern
+  }catch(e){ toast('Fehler: '+e.message); }
+  finally{ if(btn){ btn.disabled=false; btn.textContent=label||'🧾 Angebot-PDF erzeugen'; } }
+}
+
 function wireCreate(){
   const add=$("#btnAdd"); if(add) add.onclick=openCreateModal;
   const rc=$("#btnRechner"); if(rc) rc.onclick=()=>openRechner();
@@ -1139,6 +1163,7 @@ function wireCreate(){
   if($("#rkReset")) $("#rkReset").onclick=rkResetAll;
   { const rm=$("#rechnerModal"); if(rm) rm.addEventListener("click", e=>{ if(e.target===rm) closeRechner(); }); }
   if($("#dRechnerBtn")) $("#dRechnerBtn").onclick=()=>{ const b=byId(activeId); openRechner(b?b.name:null); };
+  if($("#dOfferBtn")) $("#dOfferBtn").onclick=()=>{ const b=byId(activeId); if(b) generateOffer(b); };
   document.addEventListener("keydown", e=>{ if(e.key==="Escape" && $("#rechnerModal").classList.contains("on")) closeRechner(); });
   if($("#cmX")) $("#cmX").onclick=closeCreateModal;
   if($("#cmCancel")) $("#cmCancel").onclick=closeCreateModal;
