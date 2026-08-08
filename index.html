@@ -856,6 +856,8 @@ function gmailUrl(b){
     ? `Είδαμε ότι έχετε ήδη ιστοσελίδα — γι' αυτό σχεδιάσαμε μια πιο σύγχρονη εκδοχή και σας αφήνουμε να συγκρίνετε μόνοι σας:`
     : `Σχεδιάσαμε μια νέα, μοντέρνα ιστοσελίδα ειδικά για εσάς — φτιαγμένη για κινητό, με τιμοκατάλογο, χάρτη και ραντεβού με ένα κλικ:`;
   const feat = `Φτιαγμένη για κινητό, με τιμοκατάλογο, χάρτη και ραντεβού με ένα κλικ — έτοιμη να μπει live.`;
+  // PDF-Block nur, wenn das on-demand-Angebot schon erzeugt wurde (b.pdf = frische Supabase-Storage-URL, kein Netlify/null).
+  const pdfBlock = b.pdf ? `Δείτε αναλυτικά την προσφορά μας εδώ (PDF):\n${b.pdf}\n\n` : "";
   const body=
 `Γεια σας,
 
@@ -864,10 +866,7 @@ ${intro}
 ${pitch}
 ${b.demo}
 ${hasSite ? "\n"+feat+"\n" : ""}
-Δείτε αναλυτικά την προσφορά μας εδώ (PDF):
-${b.pdf}
-
-Θα περάσουμε τις επόμενες ημέρες από το κατάστημά σας. Ρίξτε μια ματιά και πείτε μας τη γνώμη σας — ή απαντήστε απευθείας σε αυτό το email!
+${pdfBlock}Θα περάσουμε τις επόμενες ημέρες από το κατάστημά σας. Ρίξτε μια ματιά και πείτε μας τη γνώμη σας — ή απαντήστε απευθείας σε αυτό το email!
 
 Με εκτίμηση,
 istoselidasas24`;
@@ -879,7 +878,7 @@ function sendEmail(){
   b.emailedAt=Date.now(); const patch={emailed_at:new Date().toISOString()};
   if(b.status==="neu"){ b.status="email"; patch.status="email_raus"; }
   updateBiz(b,patch); openDetail(activeId); renderAll();
-  toast(b.demo ? "Gmail-Entwurf geöffnet für "+b.name : "Status gesetzt — Demo für diesen Betrieb fehlt noch", true);
+  toast(b.demo ? (b.pdf ? "Gmail-Entwurf geöffnet für "+b.name : "Gmail-Entwurf geöffnet — Tipp: erst „🧾 Angebot-PDF erzeugen“ für den PDF-Link") : "Status gesetzt — Demo für diesen Betrieb fehlt noch", true);
 }
 
 /* =====================================================================
